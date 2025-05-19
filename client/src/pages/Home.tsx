@@ -130,9 +130,9 @@ const Home = () => {
           <div className="flex justify-between items-center mb-8">
             <h2 className="font-heading font-bold text-2xl text-gray-800">Recent Reports</h2>
             <Link href="/map">
-              <a className="text-primary-600 hover:text-primary-700 font-medium flex items-center">
+              <div className="text-primary-600 hover:text-primary-700 font-medium flex items-center cursor-pointer">
                 View all <span className="ml-2">→</span>
-              </a>
+              </div>
             </Link>
           </div>
 
