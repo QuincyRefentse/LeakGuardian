@@ -1,3 +1,5 @@
+// Import the database storage implementation first to avoid import errors
+import { DatabaseStorage } from "./storage-db";
 import { 
   users, type User, type InsertUser,
   leaks, type Leak, type InsertLeak,
@@ -26,6 +28,7 @@ export interface IStorage {
   createComment(comment: InsertComment | any): Promise<Comment>;
 }
 
+// This is the memory storage implementation (for reference)
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private leaks: Map<number, Leak>;
@@ -165,4 +168,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use the database storage implementation
+export const storage = new DatabaseStorage();
