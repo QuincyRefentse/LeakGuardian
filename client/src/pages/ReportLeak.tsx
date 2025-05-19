@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FaCamera, FaMapMarkerAlt, FaInfoCircle, FaCheck, FaTimes, FaArrowRight, FaMapPin } from "react-icons/fa";
+import { FaCamera, FaMapMarkerAlt, FaInfoCircle, FaCheck, FaTimes, FaArrowRight, FaMapPin, FaPlus } from "react-icons/fa";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,62 @@ const ReportLeak = () => {
     form.setValue("coordinates", { lat: position.lat, lng: position.lng });
   }
 
+  // Handle image capture from camera
+  const handleImageCapture = (imageData: string, analysis: LeakAnalysis | null) => {
+    setCapturedImages(prev => [...prev, { url: imageData, analysis }]);
+    
+    // Pre-fill form fields based on AI analysis if leak was detected
+    if (analysis && analysis.isLeak) {
+      // Map the leak type from analysis to our predefined categories
+      const leakTypeMapping: Record<string, string> = {
+        pipe: 'pipe',
+        hydrant: 'hydrant',
+        valve: 'valve',
+        meter: 'meter',
+        water_main: 'water_main',
+        default: 'other'
+      };
+      
+      // Try to determine the leak type from the analysis
+      let detectedType = 'other';
+      Object.keys(leakTypeMapping).forEach(key => {
+        if (analysis.leakType.toLowerCase().includes(key)) {
+          detectedType = leakTypeMapping[key];
+        }
+      });
+      
+      form.setValue('leakType', detectedType);
+      form.setValue('severity', Math.min(5, Math.max(1, Math.ceil(analysis.confidence * 5))));
+      
+      // If we don't have a title yet, generate one from the analysis
+      if (!form.getValues('title')) {
+        form.setValue('title', analysis.leakType);
+      }
+      
+      // If we don't have a description yet, use the one from the analysis
+      if (!form.getValues('description')) {
+        form.setValue('description', analysis.description);
+      }
+    }
+    
+    // Convert the data URL to a File object
+    const dataUrlToFile = async (dataUrl: string) => {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `leak-image-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      
+      // Add to uploaded files and preview URLs
+      setUploadedFiles(prev => [...prev, file]);
+      setFilePreviewUrls(prev => [...prev, dataUrl]);
+    };
+    
+    dataUrlToFile(imageData);
+    
+    // Automatically advance to the next step
+    setUseCameraMode(false);
+    goToStep(ReportStep.LOCATION);
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -76,28 +132,40 @@ const ReportLeak = () => {
     const allFiles = [...previousFiles, ...newFiles];
     
     // Validate files
-    validateImages(allFiles).then(({ isValid, message }) => {
-      if (isValid) {
-        setUploadedFiles(allFiles);
-        form.setValue("files", allFiles);
+    const validateAndProcessFiles = async () => {
+      try {
+        const validation = await validateImages(newFiles);
         
-        // Generate preview URLs
-        const newUrls = newFiles.map(file => URL.createObjectURL(file));
-        setFilePreviewUrls(prev => [...prev, ...newUrls]);
-        
-        // Display success message
-        toast({
-          title: "Files uploaded",
-          description: `${newFiles.length} file(s) added successfully.`,
-        });
-      } else {
+        if (validation.isValid) {
+          setUploadedFiles(allFiles);
+          
+          // Generate preview URLs
+          const newUrls = newFiles.map(file => URL.createObjectURL(file));
+          setFilePreviewUrls(prev => [...prev, ...newUrls]);
+          
+          // Display success message
+          toast({
+            title: "Files uploaded",
+            description: `${newFiles.length} file(s) added successfully.`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Upload failed",
+            description: validation.message
+          });
+        }
+      } catch (error) {
+        console.error("Error validating images:", error);
         toast({
           variant: "destructive",
           title: "Upload failed",
-          description: message
+          description: "An error occurred while validating the images."
         });
       }
-    });
+    };
+    
+    validateAndProcessFiles();
   };
 
   const removeFile = (index: number) => {
@@ -256,28 +324,45 @@ const ReportLeak = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h4 className="font-heading font-semibold text-lg mb-4">Upload Photos or Videos</h4>
+              <h4 className="font-heading font-semibold text-lg mb-4">Capture or Upload Photos</h4>
               <p className="text-gray-600 mb-6">
-                Upload clear images or videos of the leak or infrastructure damage. This helps our system validate the issue.
+                Take pictures of the leak or infrastructure damage using your camera, or upload existing photos. This helps our AI analyze and validate the issue.
               </p>
             </div>
 
-            <div className="mb-6">
-              <label className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-500 transition-colors cursor-pointer block">
-                <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                />
-                <div className="flex flex-col items-center">
-                  <FaCamera className="text-4xl text-gray-400 mb-3" />
-                  <p className="text-gray-600 mb-2">Drag and drop files here or click to browse</p>
-                  <p className="text-xs text-gray-500">Supports JPG, PNG, GIF (Max 10MB each)</p>
-                </div>
-              </label>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <button
+                type="button"
+                onClick={() => setUseCameraMode(true)}
+                className={`flex-1 border-2 ${useCameraMode ? 'border-primary-500' : 'border-gray-300'} rounded-lg p-6 text-center hover:border-primary-500 transition-colors flex flex-col items-center justify-center`}
+              >
+                <FaCamera className="text-3xl text-primary-600 mb-3" />
+                <p className="font-medium text-gray-700">Use Camera</p>
+                <p className="text-xs text-gray-500 mt-1">Take pictures directly and get AI analysis</p>
+              </button>
+
+              <div className={`flex-1 ${!useCameraMode ? 'border-primary-500' : 'border-gray-300'} border-2 border-dashed rounded-lg p-6 text-center hover:border-primary-500 transition-colors`}>
+                <label className="cursor-pointer block">
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    onClick={() => setUseCameraMode(false)}
+                  />
+                  <div className="flex flex-col items-center">
+                    <FaPlus className="text-3xl text-gray-400 mb-3" />
+                    <p className="font-medium text-gray-700">Upload Images</p>
+                    <p className="text-xs text-gray-500 mt-1">Select files from your device</p>
+                  </div>
+                </label>
+              </div>
             </div>
+
+            {useCameraMode ? (
+              <CameraCapture onImageCapture={handleImageCapture} coordinates={position} />
+            ) : null}
 
             {filePreviewUrls.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
@@ -304,7 +389,7 @@ const ReportLeak = () => {
               <Button 
                 type="button" 
                 onClick={() => goToStep(ReportStep.LOCATION)}
-                disabled={uploadedFiles.length === 0 || isValidating}
+                disabled={(uploadedFiles.length === 0 && !useCameraMode) || isValidating}
                 className="flex items-center"
               >
                 Continue <FaArrowRight className="ml-2" />
