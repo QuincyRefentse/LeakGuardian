@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { FaPlus, FaMapMarkerAlt, FaCamera, FaMapPin, FaCheckCircle, FaChevronDown, FaApple, FaGooglePlay } from "react-icons/fa";
+import { FaPlus, FaMapMarkerAlt, FaCamera, FaMapPin, FaCheckCircle, FaChevronDown, FaApple, FaGooglePlay, FaWater } from "react-icons/fa";
 import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { IMAGES } from "@/lib/constants";

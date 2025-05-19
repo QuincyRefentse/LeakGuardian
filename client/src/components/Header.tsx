@@ -11,7 +11,7 @@ const Header = ({ currentUser }: HeaderProps) => {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/">
-          <a className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <div className="text-primary">
               <FaWater className="text-2xl" />
             </div>
@@ -19,30 +19,30 @@ const Header = ({ currentUser }: HeaderProps) => {
               <span className="text-primary">Leak</span>
               <span className="text-secondary-500">Alert</span>
             </h1>
-          </a>
+          </div>
         </Link>
         <div className="hidden md:flex items-center space-x-8">
           <nav>
             <ul className="flex space-x-6">
               <li>
                 <Link href="/">
-                  <a className="font-medium text-gray-700 hover:text-primary-600">Home</a>
+                  <span className="font-medium text-gray-700 hover:text-primary-600 cursor-pointer">Home</span>
                 </Link>
               </li>
               <li>
                 <Link href="/my-reports">
-                  <a className="font-medium text-gray-700 hover:text-primary-600">My Reports</a>
+                  <span className="font-medium text-gray-700 hover:text-primary-600 cursor-pointer">My Reports</span>
                 </Link>
               </li>
               <li>
                 <Link href="/map">
-                  <a className="font-medium text-gray-700 hover:text-primary-600">Map</a>
+                  <span className="font-medium text-gray-700 hover:text-primary-600 cursor-pointer">Map</span>
                 </Link>
               </li>
               {currentUser?.id && (
                 <li>
                   <Link href="/admin">
-                    <a className="font-medium text-gray-700 hover:text-primary-600">Admin</a>
+                    <span className="font-medium text-gray-700 hover:text-primary-600 cursor-pointer">Admin</span>
                   </Link>
                 </li>
               )}

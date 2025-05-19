@@ -39,27 +39,27 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link href="/">
-                  <a className="text-gray-400 hover:text-white">Home</a>
+                  <span className="text-gray-400 hover:text-white cursor-pointer">Home</span>
                 </Link>
               </li>
               <li>
                 <Link href="/report">
-                  <a className="text-gray-400 hover:text-white">Report a Leak</a>
+                  <span className="text-gray-400 hover:text-white cursor-pointer">Report a Leak</span>
                 </Link>
               </li>
               <li>
                 <Link href="/map">
-                  <a className="text-gray-400 hover:text-white">View Leak Map</a>
+                  <span className="text-gray-400 hover:text-white cursor-pointer">View Leak Map</span>
                 </Link>
               </li>
               <li>
                 <Link href="/my-reports">
-                  <a className="text-gray-400 hover:text-white">My Reports</a>
+                  <span className="text-gray-400 hover:text-white cursor-pointer">My Reports</span>
                 </Link>
               </li>
               <li>
                 <Link href="/">
-                  <a className="text-gray-400 hover:text-white">About Us</a>
+                  <span className="text-gray-400 hover:text-white cursor-pointer">About Us</span>
                 </Link>
               </li>
             </ul>
