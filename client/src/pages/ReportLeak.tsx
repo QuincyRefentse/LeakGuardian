@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +24,8 @@ import { leakFormSchema, LeakFormData, LEAK_TYPE } from "@shared/schema";
 import { LEAK_TYPES } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import CameraCapture, { LeakAnalysis } from "@/components/CameraCapture";
+import { Badge } from "@/components/ui/badge";
 
 enum ReportStep {
   MEDIA = 0,
@@ -36,7 +38,9 @@ const ReportLeak = () => {
   const [step, setStep] = useState<ReportStep>(ReportStep.MEDIA);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [filePreviewUrls, setFilePreviewUrls] = useState<string[]>([]);
+  const [capturedImages, setCapturedImages] = useState<{url: string, analysis: LeakAnalysis | null}[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useCameraMode, setUseCameraMode] = useState(false);
   const { validateImages, isValidating } = useImageValidation();
   const { position, error: geoError, loading: geoLoading } = useGeolocation();
   const { toast } = useToast();
